@@ -42,20 +42,20 @@ func (th *ThirdSecretAPI) Get(key string) (string, error) {
 		return "", ErrUnAuthorized
 	}
 
-	if res.StatusCode >= 200 && res.StatusCode <= 299 {
-		var bu bytes.Buffer
-		if _, err := io.Copy(&bu, res.Body); err != nil {
-			return "", err
+	if res.StatusCode != 200 {
+		if res.StatusCode == http.StatusNotFound {
+			return "", ErrNotFound
 		}
 
-		return bu.String(), nil
+		return "", ErrFailedRequest
 	}
 
-	if res.StatusCode == http.StatusNotFound {
-		return "", ErrNotFound
+	var bu bytes.Buffer
+	if _, err := io.Copy(&bu, res.Body); err != nil {
+		return "", err
 	}
 
-	return "", ErrFailedRequest
+	return bu.String(), nil
 }
 
 func (th *ThirdSecretAPI) prepareURL(val string) string {
